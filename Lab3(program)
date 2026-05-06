@@ -1,0 +1,63 @@
+step1 - gsutil mb -l us-central1 gs://your-bucket-name
+
+step2 -
+mkdir gcs-function
+cd gcs-function
+
+step3 - Create a Python file (main.py) and write the function:
+
+import functions_framework
+@functions_framework.cloud_event
+def gcs_trigger(cloud_event):
+"""Triggered by a change in a Cloud Storage
+bucket."""
+data = cloud_event.data
+
+file_name = data["name"]
+bucket_name = data["bucket"]
+size = data.get("size", "Unknown size")
+
+print(f"File {file_name} uploaded to
+{bucket_name}, size: {size} bytes")
+
+
+Step 4: Create the requirements.txt File
+
+echo "functions-framework==3.*" >
+requirements.txt
+
+OR
+vi requirements.txt
+And write the dependency info as:
+functions-framework==3.*
+
+Step 5: Deploy the Cloud Function
+Run the following command to deploy the function:
+gcloud functions deploy gcs_trigger \
+--gen2 \
+--runtime=python311 \
+--region=us-central1 \
+--source=. \
+--entry-point=gcs_trigger \
+
+--trigger-event-filters="type=google.cloud.st
+orage.object.v1.finalized" \
+
+--trigger-event-filters="bucket=your-bucket-name
+" \ --allow-unauthenticated
+
+Step 6: Test the Function
+
+Upload a file to the bucket:
+echo "Hello Cloud Function!" > test.txt
+OR
+vi test.txt
+And write the content: Hello Cloud
+Function!
+
+Then, execute the following command:
+gsutil cp test.txt gs://your-bucket-name/
+
+Check logs:
+gcloud functions logs read gcs_trigger
+--region=us-central1
